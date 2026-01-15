@@ -11,7 +11,7 @@ func respondWithError(w http.ResponseWriter, code int, msg string, err error) {
 		log.Println(err)
 	}
 	if code > 399 && code < 500 {
-		log.Printf("%d Forbbiden: %s", code, msg)
+		log.Printf("Error %d: %s", code, msg)
 	}
 	if code > 499 {
 		log.Printf("Responding with 5XX error: %s", msg)
