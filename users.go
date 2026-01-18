@@ -53,10 +53,19 @@ func (cfg *apiConfig) createUser(context context.Context, email string, hashedPa
 }
 
 func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
+	type response struct {
+		User
+		Token 		 string `json:"token"`
+		RefreshToken string `json:"refresh_token,omitempty"`
+	}
 	params, err := decodeUser(r)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't decode parameters", err)
 		return
+	}
+
+	if params.ExpiresInSeconds <= 0 || params.ExpiresInSeconds > 3600 {
+		params.ExpiresInSeconds = 3600
 	}
 
 	user, err := cfg.db.GetUserByEmail(r.Context(), params.Email)
@@ -69,22 +78,32 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusUnauthorized, "Invalid email or password", err)
 		return
 	}
-	
-	respondWithJSON(w, http.StatusOK, User{
-										ID:        user.ID,
-										CreatedAt: user.CreatedAt,
-										UpdatedAt: user.UpdatedAt,
-										Email:     user.Email,
-									})
+
+	token, err := auth.MakeJWT(user.ID, cfg.tokenSecret, time.Duration(params.ExpiresInSeconds)*time.Second)
+	if err != nil {
+		respondWithError(w, http.StatusInternalServerError, "Couldn't create token", err)
+		return
+	}
+	respondWithJSON(w, http.StatusOK, response{
+		User: User{
+			ID:        user.ID,
+			CreatedAt: user.CreatedAt,
+			UpdatedAt: user.UpdatedAt,
+			Email:     user.Email,
+		},
+		Token: token,
+	})
 }
 
 func decodeUser(r *http.Request) (struct {
 										Password string `json:"password"`
 										Email    string `json:"email"`
+										ExpiresInSeconds int64  `json:"expires_in_seconds,omitempty"`
 									}, error) {
 	type parameters struct {
-		Password string `json:"password"`
-		Email    string `json:"email"`
+		Password 		 string `json:"password"`
+		Email    		 string `json:"email"`
+		ExpiresInSeconds int64  `json:"expires_in_seconds,omitempty"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
