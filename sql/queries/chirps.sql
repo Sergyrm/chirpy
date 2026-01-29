@@ -7,7 +7,8 @@ VALUES (
     , $1
     , $2
 )
-RETURNING *;
+RETURNING *
+;
 
 -- name: GetAllChirps :many
 SELECT id
@@ -26,5 +27,10 @@ SELECT id
     , body
     , user_id
 FROM chirps
+WHERE id = $1
+;
+
+-- name: DeleteChirpByID :exec
+DELETE FROM chirps
 WHERE id = $1
 ;
