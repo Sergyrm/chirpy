@@ -14,10 +14,11 @@ import (
 const AccessTokenExpirySeconds = 3600
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
+	ID        	uuid.UUID `json:"id"`
+	CreatedAt 	time.Time `json:"created_at"`
+	UpdatedAt 	time.Time `json:"updated_at"`
+	Email     	string    `json:"email"`
+	IsChirpyRed bool      `json:"is_chirpy_red"`
 }
 
 func (cfg *apiConfig) handlerUserCreate(w http.ResponseWriter, r *http.Request) {
@@ -47,10 +48,11 @@ func (cfg *apiConfig) createUser(context context.Context, email string, hashedPa
 	}
 
 	return &User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		ID:        		user.ID,
+		CreatedAt: 		user.CreatedAt,
+		UpdatedAt: 		user.UpdatedAt,
+		Email:     		user.Email,
+		IsChirpyRed: 	user.IsChirpyRed,
 	}, nil
 }
 
@@ -101,10 +103,11 @@ func (cfg *apiConfig) handlerLogin(w http.ResponseWriter, r *http.Request) {
 
 	respondWithJSON(w, http.StatusOK, response{
 		User: User{
-			ID:        user.ID,
-			CreatedAt: user.CreatedAt,
-			UpdatedAt: user.UpdatedAt,
-			Email:     user.Email,
+			ID:        		user.ID,
+			CreatedAt: 		user.CreatedAt,
+			UpdatedAt: 		user.UpdatedAt,
+			Email:     		user.Email,
+			IsChirpyRed: 	user.IsChirpyRed,
 		},
 		Token:        token,
 		RefreshToken: refreshToken,
@@ -209,10 +212,11 @@ func (cfg *apiConfig) handlerUserModify(w http.ResponseWriter, r *http.Request) 
 	}
 
 	respondWithJSON(w, http.StatusOK, User{
-		ID:        updatedUser.ID,
-		CreatedAt: updatedUser.CreatedAt,
-		UpdatedAt: updatedUser.UpdatedAt,
-		Email:     updatedUser.Email,
+		ID:        		updatedUser.ID,
+		CreatedAt: 		updatedUser.CreatedAt,
+		UpdatedAt: 		updatedUser.UpdatedAt,
+		Email:     		updatedUser.Email,
+		IsChirpyRed: 	updatedUser.IsChirpyRed,
 	})
 }
 

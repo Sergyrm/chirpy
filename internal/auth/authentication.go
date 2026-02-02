@@ -105,3 +105,21 @@ func MakeRefreshToken() (string, error) {
 
 	return hexToken, nil
 }
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header missing")
+	}
+
+	var tokenType, apiKey string
+	_, err := fmt.Sscanf(authHeader, "%s %s", &tokenType, &apiKey)
+	if err != nil {
+		return "", errors.New("Invalid Authorization header format")
+	}
+
+	if tokenType != "ApiKey" {
+		return "", errors.New("Invalid token type")
+	}
+	return apiKey, nil
+}
