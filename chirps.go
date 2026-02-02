@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 	"time"
+	"sort"
 
 	"github.com/Sergyrm/chirpy/internal/auth"
 	"github.com/Sergyrm/chirpy/internal/database"
@@ -21,7 +22,16 @@ type Chirp struct {
 }
 
 func (cfg *apiConfig) handlerChirps(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.db.GetAllChirps(r.Context())
+	userId := r.URL.Query().Get("author_id")
+	sortBy := r.URL.Query().Get("sort")
+
+	var chirps []database.Chirp
+	var err error
+	if userId != "" {
+		chirps, err = cfg.db.GetAllChirpsByUserID(r.Context(), uuid.MustParse(userId))
+	} else {
+		chirps, err = cfg.db.GetAllChirps(r.Context())
+	}
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "Couldn't fetch chirps", err)
 		return
@@ -35,6 +45,12 @@ func (cfg *apiConfig) handlerChirps(w http.ResponseWriter, r *http.Request) {
 			UpdatedAt: chirp.UpdatedAt,
 			Body:      chirp.Body,
 			UserID:    chirp.UserID,
+		})
+	}
+
+	if sortBy == "desc" {
+		sort.Slice(response, func(i, j int) bool {
+			return response[i].CreatedAt.After(response[j].CreatedAt)
 		})
 	}
 
